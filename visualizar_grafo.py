@@ -1,28 +1,31 @@
-import networkx as nx
 import matplotlib.pyplot as plt
+import networkx as nx
 
-def visualizar_grafo_bipartido(G, max_nos=40):
+def visualizar_grafo_bipartido(G, max_nos=40, edges_highlight=None):
     """
-    Exibe uma visualização simples do grafo bipartido com até `max_nos` nós.
+    Visualiza um grafo bipartido com destaque opcional para arestas emparelhadas.
     """
     alunos = [n for n, d in G.nodes(data=True) if d.get("bipartite") == 0]
     vagas = [n for n, d in G.nodes(data=True) if d.get("bipartite") == 1]
 
-    # Limita o número de nós para evitar poluição
+    # Cortar para visualização (debug)
     alunos = alunos[:max_nos // 2]
     vagas = vagas[:max_nos // 2]
+    subG = G.subgraph(alunos + vagas)
 
-    subgrafo = G.subgraph(alunos + vagas)
-    pos = nx.bipartite_layout(subgrafo, alunos)
+    pos = nx.bipartite_layout(subG, alunos)
 
-    nx.draw(
-        subgrafo, pos,
-        with_labels=True,
-        node_size=600,
-        node_color=["skyblue" if n in alunos else "lightgreen" for n in subgrafo.nodes()],
-        font_size=7,
-        edge_color="gray"
-    )
-    plt.title("Visualização do Grafo Bipartido (parcial)")
+    # Nós
+    nx.draw_networkx_nodes(subG, pos, node_color="lightgray", node_size=600)
+
+    # Arestas destacadas (emparelhadas)
+    if edges_highlight is None:
+        edges_highlight = []
+    nx.draw_networkx_edges(subG, pos, edgelist=subG.edges(), edge_color="gray", alpha=0.4)
+    nx.draw_networkx_edges(subG, pos, edgelist=edges_highlight, edge_color="green", width=2)
+
+    # Rótulos
+    nx.draw_networkx_labels(subG, pos, font_size=7)
+    plt.title("Emparelhamento por Iteração")
     plt.axis("off")
     plt.show()
